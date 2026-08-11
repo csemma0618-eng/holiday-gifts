@@ -1,0 +1,186 @@
+<%- include('../partials/header', { title: 'View Gift' }) %>
+<link rel="stylesheet" href="/css/editor.css">
+
+<div class="gift-view-page">
+  <div class="gift-view-header">
+    <a href="/dashboard" class="btn btn-sm btn-outline">← Back</a>
+    <h1>🎁 <%= delivery.title %></h1>
+    <span class="gift-view-theme theme-badge theme-<%= delivery.theme %>"><%= delivery.theme %></span>
+  </div>
+
+  <div class="gift-view-meta">
+    <p>From: <strong><%= delivery.sender_display || delivery.sender_name %></strong></p>
+    <p>Sent: <%= delivery.sent_at %></p>
+    <% if (delivery.message) { %>
+      <div class="gift-view-message"><p>💌 "<%= delivery.message %>"</p></div>
+    <% } %>
+  </div>
+
+  <div class="gift-view-wrapper">
+    <div class="gift-view-envelope" id="giftEnvelope">
+      <div class="envelope-front">
+        <div class="envelope-seal">💝</div>
+        <p>You have a gift!</p>
+        <button class="btn btn-primary btn-lg" onclick="openGift()">🎁 Open Gift</button>
+      </div>
+    </div>
+    <div class="gift-view-canvas-container" id="giftCanvasContainer" style="display:none;text-align:center;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.5);background:#fff;padding:0;">
+      <canvas id="giftCanvas" style="display:block;max-width:100%;height:auto;margin:0 auto;"></canvas>
+    </div>
+  </div>
+
+  <div class="gift-view-confetti" id="confettiContainer"></div>
+</div>
+
+<script>
+  // Get canvas data from server
+  var giftData = <%- JSON.stringify(delivery.canvas_json) %>;
+
+  function openGift() {
+    document.getElementById('giftEnvelope').style.display = 'none';
+    document.getElementById('giftCanvasContainer').style.display = 'block';
+    renderGift(giftData);
+    launchConfetti();
+  }
+
+  function renderGift(data) {
+    if (typeof data === 'string') {
+      try { data = JSON.parse(data); } catch(e) { return; }
+    }
+    if (!data) return;
+
+    var canvas = document.getElementById('giftCanvas');
+    var W = 800, H = 500;
+    canvas.width = W; canvas.height = H;
+    var ctx = canvas.getContext('2d');
+
+    var objects = Array.isArray(data.objects) ? data.objects : [];
+    var bgGradient = data.bgGradient;
+
+    // Draw background
+    if (bgGradient && bgGradient.length >= 2) {
+      var grad = ctx.createLinearGradient(0, 0, W, H);
+      bgGradient.forEach(function(s) { grad.addColorStop(s.pos, s.color); });
+      ctx.fillStyle = grad;
+    } else if (data.backgroundColor) {
+      ctx.fillStyle = data.backgroundColor;
+    } else {
+      ctx.fillStyle = '#ffffff';
+    }
+    ctx.fillRect(0, 0, W, H);
+
+    // Render each object — exact same logic as editor draw()
+    objects.forEach(function(o) {
+      ctx.save();
+
+      if (o.type === 'sticker') {
+        var sz = o.size || 80;
+        // White circle background (same as editor)
+        ctx.beginPath();
+        ctx.arc(o.x, o.y, sz/2 + 4, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.45)';
+        ctx.fill();
+        // Emoji centered at (x, y)
+        ctx.font = sz + 'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(o.emoji, o.x, o.y);
+
+      } else if (o.type === 'text' || o.type === 'textbox') {
+        // Check if this is old Fabric.js format (has 'left' + center alignment)
+        var isOldFormat = (o.left !== undefined && o.textAlign !== 'left');
+        var text = o.text || '';
+        var fs = o.fontSize || 32;
+        var font = o.font || o.fontFamily || 'Georgia, serif';
+        var color = o.color || o.fill || '#000';
+        var lines = text.split('\n');
+
+        if (isOldFormat) {
+          // Old Fabric.js: center-aligned within box, left=left edge
+          var cx = o.left + (o.width || o.w || 400) / 2;
+          var cy = o.top || o.y || 200;
+          ctx.font = fs + 'px ' + font;
+          ctx.fillStyle = color;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          for (var i = 0; i < lines.length; i++) {
+            ctx.fillText(lines[i], cx, cy + i * fs * 1.4);
+          }
+        } else {
+          // New vanilla format: left-aligned, x=left, y=top, w=width
+          var x = o.x || 0;
+          var y = o.y || 0;
+          var maxW = o.w || 400;
+          ctx.font = fs + 'px ' + font;
+          ctx.fillStyle = color;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          // Word wrap
+          var words = text.split(' ');
+          var line = '', ly = y, lh = fs * 1.35;
+          for (var wi = 0; wi < words.length; wi++) {
+            var test = line + words[wi] + ' ';
+            if (ctx.measureText(test).width > maxW && wi > 0) {
+              ctx.fillText(line, x, ly);
+              line = words[wi] + ' ';
+              ly += lh;
+            } else { line = test; }
+          }
+          ctx.fillText(line, x, ly);
+        }
+
+      } else if (o.type === 'shape' || o.type === 'rect' || o.type === 'circle' || o.type === 'triangle') {
+        var st = o.shapeType || o.type;
+        var sx = o.x || o.left || 0;
+        var sy = o.y || o.top || 0;
+        var sw = o.w || o.width || 100;
+        var sh = o.h || o.height || 100;
+        ctx.fillStyle = o.fill || 'transparent';
+        ctx.strokeStyle = o.stroke || '#000';
+        ctx.lineWidth = o.strokeW || o.strokeWidth || 2;
+        ctx.beginPath();
+        if (st === 'rect') { ctx.rect(sx, sy, sw, sh); }
+        else if (st === 'circle') { ctx.ellipse(sx + sw/2, sy + sh/2, sw/2, sh/2, 0, 0, Math.PI * 2); }
+        else if (st === 'triangle') { ctx.moveTo(sx + sw/2, sy); ctx.lineTo(sx + sw, sy + sh); ctx.lineTo(sx, sy + sh); ctx.closePath(); }
+        else if (st === 'line') { ctx.moveTo(sx, sy); ctx.lineTo(sx + sw, sy + sh); }
+        ctx.fill();
+        ctx.stroke();
+
+      } else if (o.type === 'path' && o.points && o.points.length >= 2) {
+        ctx.strokeStyle = o.color || '#000';
+        ctx.lineWidth = o.width || 4;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(o.points[0].x, o.points[0].y);
+        for (var j = 1; j < o.points.length; j++) {
+          ctx.lineTo(o.points[j].x, o.points[j].y);
+        }
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    });
+  }
+
+  function launchConfetti() {
+    var container = document.getElementById('confettiContainer');
+    var colors = ['#c41e3a','#2e7d32','#ffd700','#ff6b6b','#4ecdc4','#ff9f43','#a29bfe','#fd79a8','#00cec9','#fab1a0'];
+    var shapes = ['●','■','▲','★','♦','❤','🎉','✨','🎊','⭐'];
+    for (var i = 0; i < 100; i++) {
+      var p = document.createElement('span');
+      p.className = 'confetti-particle';
+      p.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+      p.style.cssText =
+        'left:' + Math.random() * 100 + '%;' +
+        'color:' + colors[Math.floor(Math.random() * colors.length)] + ';' +
+        'font-size:' + (Math.random() * 20 + 10) + 'px;' +
+        'animation-delay:' + Math.random() * 2 + 's;' +
+        'animation-duration:' + (Math.random() * 2 + 2) + 's;';
+      container.appendChild(p);
+    }
+    setTimeout(function() { container.innerHTML = ''; }, 5000);
+  }
+</script>
+
+<%- include('../partials/footer') %>

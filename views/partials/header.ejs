@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title + ' - ' : '' %>Holiday Gifts 🎁</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎁</text></svg>">
+</head>
+<body>
+  <div class="snowflakes" aria-hidden="true">
+    <div class="snowflake">❄</div>
+    <div class="snowflake">❅</div>
+    <div class="snowflake">❆</div>
+    <div class="snowflake">❄</div>
+    <div class="snowflake">❅</div>
+    <div class="snowflake">❆</div>
+    <div class="snowflake">❄</div>
+    <div class="snowflake">❅</div>
+    <div class="snowflake">❆</div>
+    <div class="snowflake">❄</div>
+  </div>
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">🎄 Holiday Gifts</a>
+      <div class="nav-links">
+        <% if (locals.user) { %>
+          <a href="/dashboard" class="nav-link">📋 Dashboard</a>
+          <a href="/gifts/create" class="nav-link nav-create">✨ Create Gift</a>
+          <a href="/gifts/received" class="nav-link">📬 Inbox</a>
+          <a href="/gifts/sent" class="nav-link">📤 Sent</a>
+          <div class="nav-dropdown">
+            <button class="nav-link nav-user">
+              <span class="avatar-sm"><%= (user.display_name || user.username).charAt(0).toUpperCase() %></span>
+              <%= user.display_name || user.username %>
+              <% if (user.role === 'admin') { %><span class="badge-admin">Admin</span><% } %>
+            </button>
+            <div class="dropdown-menu">
+              <a href="/users/me">👤 My Profile</a>
+              <% if (user.role === 'admin') { %>
+                <a href="/admin/dashboard">🛡️ Admin Panel</a>
+              <% } %>
+              <hr>
+              <a href="/auth/logout" class="logout-link">🚪 Logout</a>
+            </div>
+          </div>
+        <% } else { %>
+          <a href="/auth/login" class="nav-link">Login</a>
+          <a href="/auth/register" class="nav-btn">Sign Up</a>
+        <% } %>
+      </div>
+      <button class="mobile-menu-btn" aria-label="Menu">☰</button>
+    </div>
+  </nav>
+  <div class="mobile-menu" style="display:none;">
+    <% if (locals.user) { %>
+      <a href="/dashboard">📋 Dashboard</a>
+      <a href="/gifts/create">✨ Create Gift</a>
+      <a href="/gifts/received">📬 Inbox</a>
+      <a href="/gifts/sent">📤 Sent</a>
+      <a href="/users/me">👤 Profile</a>
+      <% if (user.role === 'admin') { %>
+        <a href="/admin/dashboard">🛡️ Admin</a>
+      <% } %>
+      <a href="/auth/logout">🚪 Logout</a>
+    <% } else { %>
+      <a href="/auth/login">Login</a>
+      <a href="/auth/register">Sign Up</a>
+    <% } %>
+  </div>
+
+  <main class="main-content">
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="toast toast-success"><%= success %></div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="toast toast-error"><%= error %></div>
+    <% } %>

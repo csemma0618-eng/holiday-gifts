@@ -1,0 +1,85 @@
+<%- include('partials/header', { title: 'My Profile' }) %>
+
+<div class="profile-page">
+  <!-- ID Card — prominent, always visible -->
+  <div class="id-card">
+    <div class="id-card-icon">🪪</div>
+    <div class="id-card-body">
+      <h2>Your Gift ID</h2>
+      <p class="id-card-desc">Friends need this to send you gifts. It's unique — even if someone has the same name.</p>
+      <div class="id-card-value">
+        <code id="myUserId"><%= user.id %></code>
+        <button class="btn btn-sm btn-primary" onclick="copyId()" id="copyBtn">📋 Copy</button>
+      </div>
+      <div class="id-card-hint">
+        💡 Share this ID with friends, or tell them to search for <strong>@<%= user.username %></strong> when sending.
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile edit -->
+  <div class="profile-card">
+    <div class="profile-header">
+      <div class="profile-avatar-large">
+        <%= (user.display_name || user.username).charAt(0).toUpperCase() %>
+      </div>
+      <div>
+        <h1><%= user.display_name || user.username %></h1>
+        <p class="profile-username">@<%= user.username %></p>
+      </div>
+    </div>
+
+    <% if (locals.success) { %>
+      <div class="alert alert-success"><%= success %></div>
+    <% } %>
+    <% if (locals.error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/users/me" class="profile-form">
+      <div class="form-group">
+        <label for="display_name">Display Name</label>
+        <input type="text" id="display_name" name="display_name"
+               value="<%= user.display_name || '' %>" placeholder="How others see you">
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email"
+               value="<%= user.email %>" required>
+      </div>
+      <div class="form-group">
+        <label for="bio">Bio</label>
+        <textarea id="bio" name="bio" rows="3"
+                  placeholder="Tell people about yourself..."><%= user.bio || '' %></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+    </form>
+  </div>
+
+  <div class="profile-meta">
+    <p>Member since: <%= user.created_at %></p>
+    <p>Role: <strong><%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %></strong></p>
+  </div>
+</div>
+
+<script>
+function copyId() {
+  var code = document.getElementById('myUserId').textContent;
+  navigator.clipboard.writeText(code).then(function() {
+    var btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ Copied!';
+    setTimeout(function() { btn.textContent = '📋 Copy'; }, 2000);
+  }).catch(function() {
+    // Fallback for older browsers
+    var ta = document.createElement('textarea');
+    ta.value = code; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    var btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ Copied!';
+    setTimeout(function() { btn.textContent = '📋 Copy'; }, 2000);
+  });
+}
+</script>
+
+<%- include('partials/footer') %>

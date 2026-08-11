@@ -1,0 +1,17 @@
+<%- include('partials/header', { title: title || 'Error' }) %>
+
+<div class="error-page">
+  <div class="error-card">
+    <div class="error-icon">😕</div>
+    <h1><%= title || 'Oops!' %></h1>
+    <p><%= message || 'Something went wrong.' %></p>
+    <div class="error-actions">
+      <a href="/" class="btn btn-outline">🏠 Home</a>
+      <% if (locals.user) { %>
+        <a href="/dashboard" class="btn btn-primary">📋 Dashboard</a>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

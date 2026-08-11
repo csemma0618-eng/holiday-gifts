@@ -1,0 +1,80 @@
+<%- include('partials/header', { title: 'Welcome' }) %>
+
+<section class="hero">
+  <div class="hero-content">
+    <h1 class="hero-title">
+      <span class="hero-icon">🎁</span>
+      Create Magical Holiday Gifts
+    </h1>
+    <p class="hero-subtitle">
+      Design personalized digital gifts with stickers, drawings, and heartfelt messages.
+      Send them to friends and family — spread holiday cheer!
+    </p>
+    <div class="hero-actions">
+      <% if (locals.user) { %>
+        <a href="/gifts/create" class="btn btn-primary btn-lg">✨ Create a Gift</a>
+        <a href="/gifts/received" class="btn btn-outline btn-lg">📬 View Inbox</a>
+      <% } else { %>
+        <a href="/auth/register" class="btn btn-primary btn-lg">🎄 Get Started</a>
+        <a href="/auth/login" class="btn btn-outline btn-lg">I have an account</a>
+      <% } %>
+    </div>
+  </div>
+  <div class="hero-decorations">
+    <span class="deco deco-1">🎄</span>
+    <span class="deco deco-2">⭐</span>
+    <span class="deco deco-3">🎅</span>
+    <span class="deco deco-4">🦌</span>
+    <span class="deco deco-5">🎁</span>
+    <span class="deco deco-6">🔔</span>
+  </div>
+</section>
+
+<section class="features">
+  <h2 class="section-title">How It Works</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🎨</div>
+      <h3>Design</h3>
+      <p>Choose backgrounds, add stickers, write messages, and draw freely on an interactive canvas.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💌</div>
+      <h3>Send</h3>
+      <p>Find friends by their user ID and send your creation with a personal message.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎉</div>
+      <h3>Celebrate</h3>
+      <p>Recipients unwrap their gift with a festive animation — pure holiday magic!</p>
+    </div>
+  </div>
+</section>
+
+<section class="themes-section">
+  <h2 class="section-title">Festive Themes</h2>
+  <div class="themes-grid">
+    <div class="theme-card">
+      <div class="theme-preview theme-christmas">🎄</div>
+      <span>Christmas</span>
+    </div>
+    <div class="theme-card">
+      <div class="theme-preview theme-newyear">🎆</div>
+      <span>New Year</span>
+    </div>
+    <div class="theme-card">
+      <div class="theme-preview theme-birthday">🎂</div>
+      <span>Birthday</span>
+    </div>
+    <div class="theme-card">
+      <div class="theme-preview theme-spring">🏮</div>
+      <span>Spring Festival</span>
+    </div>
+    <div class="theme-card">
+      <div class="theme-preview theme-general">💝</div>
+      <span>General</span>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

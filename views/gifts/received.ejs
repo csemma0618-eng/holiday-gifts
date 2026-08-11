@@ -1,0 +1,46 @@
+<%- include('../partials/header', { title: 'Received Gifts' }) %>
+
+<div class="page-header">
+  <h1>📬 Received Gifts</h1>
+  <p>Gifts friends have sent to you</p>
+</div>
+
+<% if (deliveries.length === 0) { %>
+  <div class="empty-state">
+    <span class="empty-icon">📭</span>
+    <p>No gifts received yet</p>
+    <p class="empty-hint">Your user ID: <code><%= user.id %></code></p>
+    <p class="empty-hint">Share it with friends so they can send you gifts!</p>
+  </div>
+<% } else { %>
+  <div class="gift-cards">
+    <% deliveries.forEach(d => { %>
+      <a href="/gifts/<%= d.id %>/view" class="gift-card gift-card-received <%= !d.is_read ? 'gift-card-unread' : '' %>">
+        <div class="gift-card-preview theme-<%= d.theme %>">
+          <% if (d.thumbnail) { %>
+            <img src="<%= d.thumbnail %>" alt="<%= d.title %>">
+          <% } else { %>
+            <span class="gift-card-placeholder">🎁</span>
+          <% } %>
+        </div>
+        <div class="gift-card-info">
+          <h3><%= d.title %></h3>
+          <span class="gift-card-meta">
+            From: <%= d.sender_display || d.sender_name %>
+          </span>
+          <span class="gift-card-meta"><%= d.sent_at %></span>
+          <% if (d.message) { %>
+            <p class="gift-card-message">"<%= d.message %>"</p>
+          <% } %>
+        </div>
+        <div class="gift-card-status">
+          <% if (!d.is_read) { %>
+            <span class="badge-new">NEW</span>
+          <% } %>
+        </div>
+      </a>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('../partials/footer') %>

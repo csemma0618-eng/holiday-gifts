@@ -1,0 +1,123 @@
+<%- include('partials/header', { title: 'Dashboard' }) %>
+
+<div class="dashboard">
+  <div class="dash-header">
+    <h1>Welcome, <%= user.display_name || user.username %>! 👋</h1>
+    <p>Your holiday gift headquarters</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <a href="/gifts/create" class="stat-card stat-card-primary">
+      <span class="stat-icon">✨</span>
+      <span class="stat-num"><%= draftCount %></span>
+      <span class="stat-label">Drafts</span>
+    </a>
+    <a href="/gifts/received" class="stat-card stat-card-received">
+      <span class="stat-icon">📬</span>
+      <span class="stat-num"><%= receivedCount %></span>
+      <span class="stat-label">Received</span>
+      <% if (unreadCount > 0) { %>
+        <span class="stat-badge"><%= unreadCount %> new</span>
+      <% } %>
+    </a>
+    <a href="/gifts/sent" class="stat-card stat-card-sent">
+      <span class="stat-icon">📤</span>
+      <span class="stat-num"><%= sentCount %></span>
+      <span class="stat-label">Sent</span>
+    </a>
+  </div>
+
+  <div class="dash-sections">
+    <!-- Recent Drafts -->
+    <div class="dash-section">
+      <div class="dash-section-header">
+        <h2>📝 Your Drafts</h2>
+        <% if (recentDrafts.length > 0) { %>
+          <a href="/gifts/create" class="btn btn-sm btn-primary">New Gift</a>
+        <% } %>
+      </div>
+      <% if (recentDrafts.length === 0) { %>
+        <div class="empty-state">
+          <span class="empty-icon">🎨</span>
+          <p>No drafts yet</p>
+          <a href="/gifts/create" class="btn btn-primary">Create Your First Gift</a>
+        </div>
+      <% } else { %>
+        <div class="gift-cards">
+          <% recentDrafts.forEach(gift => { %>
+            <div class="gift-card gift-card-draft">
+              <div class="gift-card-preview theme-<%= gift.theme %>">
+                <% if (gift.thumbnail) { %>
+                  <img src="<%= gift.thumbnail %>" alt="<%= gift.title %>">
+                <% } else { %>
+                  <span class="gift-card-placeholder">🎁</span>
+                <% } %>
+              </div>
+              <div class="gift-card-info">
+                <h3><%= gift.title %></h3>
+                <span class="gift-card-meta">Last edited: <%= gift.updated_at %></span>
+              </div>
+              <div class="gift-card-actions">
+                <a href="/gifts/<%= gift.id %>/edit" class="btn btn-sm btn-outline">✏️ Edit</a>
+                <button onclick="deleteGift('<%= gift.id %>')" class="btn btn-sm btn-danger">🗑</button>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Recent Received -->
+    <div class="dash-section">
+      <div class="dash-section-header">
+        <h2>📬 Recently Received</h2>
+        <% if (recentReceived.length > 0) { %>
+          <a href="/gifts/received" class="btn btn-sm btn-outline">View All</a>
+        <% } %>
+      </div>
+      <% if (recentReceived.length === 0) { %>
+        <div class="empty-state">
+          <span class="empty-icon">📭</span>
+          <p>No gifts received yet</p>
+          <p class="empty-hint">Share your user ID with friends so they can send you gifts!</p>
+        </div>
+      <% } else { %>
+        <div class="gift-cards">
+          <% recentReceived.forEach(delivery => { %>
+            <a href="/gifts/<%= delivery.id %>/view" class="gift-card gift-card-received <%= !delivery.is_read ? 'gift-card-unread' : '' %>">
+              <div class="gift-card-preview theme-<%= delivery.theme %>">
+                <% if (delivery.thumbnail) { %>
+                  <img src="<%= delivery.thumbnail %>" alt="<%= delivery.title %>">
+                <% } else { %>
+                  <span class="gift-card-placeholder">🎁</span>
+                <% } %>
+              </div>
+              <div class="gift-card-info">
+                <h3><%= delivery.title %></h3>
+                <span class="gift-card-meta">From: <%= delivery.sender_name %></span>
+                <% if (!delivery.is_read) { %>
+                  <span class="badge-new">NEW</span>
+                <% } %>
+              </div>
+            </a>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+function deleteGift(id) {
+  if (confirm('Delete this draft? This cannot be undone.')) {
+    fetch('/gifts/' + id + '/delete', { method: 'POST', headers: { 'Accept': 'application/json' } })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) location.reload();
+      });
+  }
+}
+</script>
+
+<%- include('partials/footer') %>

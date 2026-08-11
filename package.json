@@ -1,0 +1,26 @@
+{
+  "name": "holiday-gifts",
+  "version": "1.0.0",
+  "description": "A platform for creating and sending personalized digital holiday gifts",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "holiday",
+    "gifts",
+    "greeting",
+    "cards"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.3",
+    "better-sqlite3-session-store": "^0.1.0",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "uuid": "^14.0.1"
+  }
+}

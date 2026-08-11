@@ -1,0 +1,60 @@
+<%- include('../partials/header', { title: 'Manage Gifts' }) %>
+
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>🎁 Manage Gifts</h1>
+    <div class="admin-nav">
+      <a href="/admin/dashboard" class="btn btn-sm btn-outline">Dashboard</a>
+      <a href="/admin/users" class="btn btn-sm btn-outline">Users</a>
+      <a href="/admin/gifts" class="btn btn-sm btn-active">Gifts</a>
+    </div>
+  </div>
+
+  <% if (locals.success) { %>
+    <div class="alert alert-success"><%= success %></div>
+  <% } %>
+
+  <div class="filter-bar">
+    <a href="/admin/gifts?filter=all" class="btn btn-sm <%= filter === 'all' ? 'btn-active' : 'btn-outline' %>">All</a>
+    <a href="/admin/gifts?filter=drafts" class="btn btn-sm <%= filter === 'drafts' ? 'btn-active' : 'btn-outline' %>">Drafts</a>
+    <a href="/admin/gifts?filter=sent" class="btn btn-sm <%= filter === 'sent' ? 'btn-active' : 'btn-outline' %>">Sent</a>
+  </div>
+
+  <div class="admin-section">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Creator</th>
+          <th>Theme</th>
+          <th>Status</th>
+          <th>Sent Count</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% gifts.forEach(g => { %>
+          <tr>
+            <td><strong><%= g.title %></strong></td>
+            <td><%= g.creator_name %></td>
+            <td><span class="badge-theme"><%= g.theme %></span></td>
+            <td><%= g.is_draft ? '📝 Draft' : '📨 Sent' %></td>
+            <td><%= g.deliveryCount %></td>
+            <td><%= g.created_at %></td>
+            <td class="admin-actions">
+              <form method="POST" action="/admin/gifts/<%= g.id %>/remove" style="display:inline;">
+                <button type="submit" class="btn btn-sm btn-danger"
+                        onclick="return confirm('Remove this gift? This cannot be undone.')">
+                  🗑 Remove
+                </button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

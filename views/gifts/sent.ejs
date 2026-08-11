@@ -1,0 +1,67 @@
+<%- include('../partials/header', { title: 'Sent Gifts' }) %>
+
+<div class="page-header">
+  <h1>📤 Sent Gifts</h1>
+  <p>Gifts you've sent to others</p>
+</div>
+
+<% if (typeof success !== 'undefined' && success) { %>
+  <div class="toast toast-success"><%= success %></div>
+<% } %>
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="toast toast-error"><%= error %></div>
+<% } %>
+
+<% if (deliveries.length === 0) { %>
+  <div class="empty-state">
+    <span class="empty-icon">📤</span>
+    <p>You haven't sent any gifts yet</p>
+    <a href="/gifts/create" class="btn btn-primary">Create a Gift</a>
+  </div>
+<% } else { %>
+  <div class="gift-cards">
+    <% deliveries.forEach(d => { %>
+      <div class="gift-card gift-card-sent">
+        <a href="/gifts/<%= d.id %>/view" class="gift-card-link">
+          <div class="gift-card-preview theme-<%= d.theme %>">
+            <% if (d.thumbnail) { %>
+              <img src="<%= d.thumbnail %>" alt="<%= d.title %>">
+            <% } else { %>
+              <span class="gift-card-placeholder">🎁</span>
+            <% } %>
+          </div>
+          <div class="gift-card-info">
+            <h3><%= d.title %></h3>
+            <span class="gift-card-meta">
+              To: <%= d.recipient_display || d.recipient_name %>
+            </span>
+            <span class="gift-card-meta"><%= d.sent_at %></span>
+          </div>
+        </a>
+        <div class="gift-card-actions-col">
+          <span class="gift-card-status"><%= d.is_read ? '👁 Read' : '📩 Delivered' %></span>
+          <button class="btn btn-sm btn-danger" onclick="deleteDelivery('<%= d.id %>')" title="Remove this record">🗑</button>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<script>
+function deleteDelivery(id) {
+  if (!confirm('Remove this sent gift record? The recipient will still keep their copy.')) return;
+  fetch('/delivery-delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ id: id })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) { location.reload(); }
+    else { alert(d.error || 'Failed to delete'); }
+  })
+  .catch(function() { alert('Network error. Please try again.'); });
+}
+</script>
+
+<%- include('../partials/footer') %>

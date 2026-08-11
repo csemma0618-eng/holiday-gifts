@@ -1,0 +1,89 @@
+<%- include('../partials/header', { title: 'Admin Dashboard' }) %>
+
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>🛡️ Admin Dashboard</h1>
+    <div class="admin-nav">
+      <a href="/admin/dashboard" class="btn btn-sm btn-active">Dashboard</a>
+      <a href="/admin/users" class="btn btn-sm btn-outline">Users</a>
+      <a href="/admin/gifts" class="btn btn-sm btn-outline">Gifts</a>
+    </div>
+  </div>
+
+  <div class="stats-row admin-stats">
+    <div class="stat-card">
+      <span class="stat-icon">👥</span>
+      <span class="stat-num"><%= stats.totalUsers %></span>
+      <span class="stat-label">Total Users</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">✅</span>
+      <span class="stat-num"><%= stats.activeUsers %></span>
+      <span class="stat-label">Active</span>
+    </div>
+    <div class="stat-card stat-card-warn">
+      <span class="stat-icon">🚫</span>
+      <span class="stat-num"><%= stats.bannedUsers %></span>
+      <span class="stat-label">Banned</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">🎁</span>
+      <span class="stat-num"><%= stats.totalGifts %></span>
+      <span class="stat-label">Total Gifts</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">📝</span>
+      <span class="stat-num"><%= stats.draftGifts %></span>
+      <span class="stat-label">Drafts</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">📨</span>
+      <span class="stat-num"><%= stats.totalDeliveries %></span>
+      <span class="stat-label">Sent</span>
+    </div>
+  </div>
+
+  <div class="admin-sections">
+    <div class="admin-section">
+      <h2>Recent Users</h2>
+      <table class="admin-table">
+        <thead>
+          <tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th></tr>
+        </thead>
+        <tbody>
+          <% recentUsers.forEach(u => { %>
+            <tr>
+              <td><strong><%= u.display_name || u.username %></strong><br><small>@<%= u.username %></small></td>
+              <td><%= u.email %></td>
+              <td><span class="badge-<%= u.role %>"><%= u.role %></span></td>
+              <td><%= u.is_banned ? '🚫 Banned' : '✅ Active' %></td>
+              <td><%= u.created_at %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="admin-section">
+      <h2>Recent Gifts</h2>
+      <table class="admin-table">
+        <thead>
+          <tr><th>Title</th><th>Creator</th><th>Theme</th><th>Status</th><th>Created</th></tr>
+        </thead>
+        <tbody>
+          <% recentGifts.forEach(g => { %>
+            <tr>
+              <td><strong><%= g.title %></strong></td>
+              <td><%= g.creator_name %></td>
+              <td><%= g.theme %></td>
+              <td><%= g.is_draft ? '📝 Draft' : '📨 Sent' %></td>
+              <td><%= g.created_at %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

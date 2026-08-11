@@ -1,0 +1,233 @@
+<%- include('partials/header', { title: mode === 'edit' ? 'Edit Gift' : 'Create Gift' }) %>
+<link rel="stylesheet" href="/css/editor.css">
+
+<div class="editor-page">
+  <!-- Top bar -->
+  <div class="editor-top-bar">
+    <a href="/dashboard" class="btn btn-sm btn-outline">← Back</a>
+    <div class="editor-title-group">
+      <input type="text" id="giftTitle" class="gift-title-input"
+             placeholder="Give your gift a title..." maxlength="100"
+             value="<%= gift ? gift.title : '' %>">
+      <select id="giftTheme" class="theme-select">
+        <option value="general" <%= gift && gift.theme==='general'?'selected':'' %>>💝 General</option>
+        <option value="christmas" <%= gift && gift.theme==='christmas'?'selected':'' %>>🎄 Christmas</option>
+        <option value="newyear" <%= gift && gift.theme==='newyear'?'selected':'' %>>🎆 New Year</option>
+        <option value="birthday" <%= gift && gift.theme==='birthday'?'selected':'' %>>🎂 Birthday</option>
+        <option value="spring" <%= gift && gift.theme==='spring'?'selected':'' %>>🏮 Spring Festival</option>
+      </select>
+    </div>
+    <div class="editor-top-actions">
+      <button class="btn btn-sm btn-outline" onclick="previewGift()">👁 Preview</button>
+      <button class="btn btn-sm btn-outline" onclick="saveGift(true)">💾 Save Draft</button>
+      <button class="btn btn-sm btn-primary" onclick="showSendModal()">📨 Send Gift</button>
+    </div>
+  </div>
+
+  <!-- Loading indicator -->
+  <div id="editorLoading" style="display:flex;align-items:center;justify-content:center;height:400px;color:var(--text-muted);font-size:1.2rem;">
+    <span>🎨 Loading editor...</span>
+  </div>
+
+  <!-- Editor (shown after init) -->
+  <div id="editorMain" style="display:none;">
+    <div class="editor-container">
+      <!-- Left toolbar -->
+      <div class="editor-toolbar">
+        <button class="tool-btn active" data-panel="templates"><span class="tool-icon">📋</span><span>Templates</span></button>
+        <button class="tool-btn" data-panel="background"><span class="tool-icon">🎨</span><span>Background</span></button>
+        <button class="tool-btn" data-panel="elements"><span class="tool-icon">⭐</span><span>Elements</span></button>
+        <button class="tool-btn" data-panel="text"><span class="tool-icon">🔤</span><span>Text</span></button>
+        <button class="tool-btn" data-panel="shapes"><span class="tool-icon">⏺</span><span>Shapes</span></button>
+        <button class="tool-btn" data-panel="draw"><span class="tool-icon">✏️</span><span>Draw</span></button>
+      </div>
+
+      <!-- Panel: Templates -->
+      <div class="editor-panel" id="panel-templates">
+        <h3 class="panel-title">📋 Gift Templates</h3>
+        <p class="panel-hint" style="margin-bottom:1rem;">Choose a template, then customize it!</p>
+        <div class="template-grid" id="templateGrid"></div>
+      </div>
+
+      <!-- Panel: Background -->
+      <div class="editor-panel" id="panel-background">
+        <h3 class="panel-title">🎨 Background</h3>
+        <div class="panel-section">
+          <label class="panel-label">Theme Presets</label>
+          <div class="bg-grid" id="bgGrid"></div>
+        </div>
+        <div class="panel-section">
+          <label class="panel-label">Solid Color</label>
+          <input type="color" id="solidBgColor" value="#ffffff" class="color-input"
+                 onchange="setSolidBg(this.value)">
+        </div>
+      </div>
+
+      <!-- Panel: Elements -->
+      <div class="editor-panel" id="panel-elements">
+        <h3 class="panel-title">⭐ Elements</h3>
+        <div class="panel-section">
+          <label class="panel-label">Category</label>
+          <select id="stickerCategory" class="panel-select" onchange="renderStickers()">
+            <option value="all">All</option>
+            <option value="christmas">🎄 Christmas</option>
+            <option value="newyear">🎆 New Year</option>
+            <option value="birthday">🎂 Birthday</option>
+            <option value="spring">🏮 Spring Festival</option>
+            <option value="nature">🌸 Nature</option>
+            <option value="love">💖 Love</option>
+            <option value="fun">😊 Fun</option>
+          </select>
+        </div>
+        <div class="sticker-grid" id="stickerGrid"></div>
+        <p class="panel-hint">Click a sticker to place it. Drag to move, corner handles to resize.</p>
+      </div>
+
+      <!-- Panel: Text -->
+      <div class="editor-panel" id="panel-text">
+        <h3 class="panel-title">🔤 Text</h3>
+        <div class="panel-section">
+          <button class="btn btn-primary btn-full" onclick="addText()" style="margin-bottom:0.75rem;">+ Add Text</button>
+          <p class="panel-hint">Double-click text to edit. Drag to move.</p>
+        </div>
+        <div class="panel-section" id="textStyleSection" style="display:none;">
+          <label class="panel-label">Style (select text first)</label>
+          <div class="form-row">
+            <div class="form-group form-group-half">
+              <label>Color</label>
+              <input type="color" id="textColor" value="#c41e3a" onchange="updateSelectedTextStyle()">
+            </div>
+            <div class="form-group form-group-half">
+              <label>Size <span id="fontSizeVal">40</span>px</label>
+              <input type="range" id="fontSize" min="14" max="120" value="40"
+                     oninput="document.getElementById('fontSizeVal').textContent=this.value;updateSelectedTextStyle()">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Font</label>
+            <select id="fontFamily" onchange="updateSelectedTextStyle()">
+              <option value="Georgia, serif">Georgia</option>
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="'Comic Sans MS', cursive">Comic Sans</option>
+              <option value="'Courier New', monospace">Courier</option>
+              <option value="Impact, sans-serif">Impact</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Shapes -->
+      <div class="editor-panel" id="panel-shapes">
+        <h3 class="panel-title">⏺ Shapes</h3>
+        <div class="panel-section">
+          <label class="panel-label">Add Shape</label>
+          <div class="shape-buttons">
+            <button class="shape-btn" onclick="addShape('rect')" title="Rectangle">▬</button>
+            <button class="shape-btn" onclick="addShape('circle')" title="Circle">●</button>
+            <button class="shape-btn" onclick="addShape('triangle')" title="Triangle">▲</button>
+            <button class="shape-btn" onclick="addShape('line')" title="Line">─</button>
+          </div>
+        </div>
+        <div class="panel-section">
+          <label class="panel-label">Style</label>
+          <div class="form-row">
+            <div class="form-group form-group-half">
+              <label>Fill</label>
+              <input type="color" id="shapeFill" value="#c41e3a55">
+            </div>
+            <div class="form-group form-group-half">
+              <label>Stroke</label>
+              <input type="color" id="shapeStroke" value="#c41e3a">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Stroke: <span id="strokeWidthVal">2</span>px</label>
+            <input type="range" id="shapeStrokeWidth" min="0" max="10" value="2"
+                   oninput="document.getElementById('strokeWidthVal').textContent=this.value">
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Draw -->
+      <div class="editor-panel" id="panel-draw">
+        <h3 class="panel-title">✏️ Draw</h3>
+        <div class="panel-section">
+          <div class="form-row">
+            <div class="form-group form-group-half">
+              <label>Color</label>
+              <input type="color" id="brushColor" value="#c41e3a"
+                     onchange="brushColor=this.value">
+            </div>
+            <div class="form-group form-group-half">
+              <label>Size <span id="brushSizeVal">4</span>px</label>
+              <input type="range" id="brushSize" min="1" max="20" value="4"
+                     oninput="document.getElementById('brushSizeVal').textContent=this.value;brushSize=parseInt(this.value);">
+            </div>
+          </div>
+          <div id="drawModeIndicator" style="display:none;padding:0.5rem;background:var(--red);color:white;border-radius:4px;text-align:center;margin-bottom:0.5rem;font-size:0.85rem;">
+            ✏️ Drawing active — draw on canvas
+          </div>
+          <button class="btn btn-outline btn-full" onclick="clearDrawing()">🗑 Clear Drawings</button>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="editor-canvas-area" id="canvasArea">
+        <div id="placementHint" style="display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);background:var(--red);color:white;padding:0.4rem 1.2rem;border-radius:20px;font-size:0.85rem;font-weight:700;z-index:10;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+          🎯 Click on canvas to place sticker (Esc to cancel)
+        </div>
+        <div class="editor-canvas-wrapper" id="canvasWrapper">
+          <canvas id="giftCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action bar -->
+    <div class="editor-action-bar">
+      <div class="action-group">
+        <button class="btn btn-sm btn-outline" onclick="undo()">↩ Undo</button>
+        <button class="btn btn-sm btn-outline" onclick="redo()">↪ Redo</button>
+        <button class="btn btn-sm btn-outline" onclick="cloneSelected()">📋 Duplicate</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteSelected()">🗑 Delete</button>
+        <button class="btn btn-sm btn-outline" onclick="clearCanvas()">🗑 Clear All</button>
+      </div>
+      <div class="action-group">
+        <span style="color:var(--text-muted);font-size:0.8rem;">Click to select · Drag to move · Corner handles to resize</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Send Modal -->
+<div class="modal-overlay" id="sendModal">
+  <div class="modal">
+    <h2>📨 Send Gift</h2>
+    <div class="form-group">
+      <label>Recipient</label>
+      <input type="text" id="recipientSearch" placeholder="Search by username, display name, or paste their Gift ID..." oninput="searchUsers()" autocomplete="off">
+      <div class="search-results" id="searchResults"></div>
+      <p class="panel-hint" style="margin-top:0.4rem;">💡 Search by username, or paste their unique <strong>Gift ID</strong> (find yours on your Profile page).</p>
+    </div>
+    <div class="form-group">
+      <label>Message (optional)</label>
+      <textarea id="giftMessage" rows="2" placeholder="Write a message..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeSendModal()">Cancel</button>
+      <button class="btn btn-primary" id="sendBtn" disabled onclick="sendGift()">🎁 Send</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" style="position:fixed;top:80px;right:20px;z-index:9999;"></div>
+
+<script src="/js/editor.js"></script>
+<script>
+  window._giftId = <%- gift ? JSON.stringify(gift.id) : 'null' %>;
+  window._giftMode = <%- JSON.stringify(mode) %>;
+  document.addEventListener('DOMContentLoaded', function() {
+    initEditor(<%- gift ? JSON.stringify(gift.canvas_json) : 'null' %>);
+  });
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,69 @@
+<%- include('../partials/header', { title: 'Manage Users' }) %>
+
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>👥 Manage Users</h1>
+    <div class="admin-nav">
+      <a href="/admin/dashboard" class="btn btn-sm btn-outline">Dashboard</a>
+      <a href="/admin/users" class="btn btn-sm btn-active">Users</a>
+      <a href="/admin/gifts" class="btn btn-sm btn-outline">Gifts</a>
+    </div>
+  </div>
+
+  <% if (locals.success) { %>
+    <div class="alert alert-success"><%= success %></div>
+  <% } %>
+  <% if (locals.error) { %>
+    <div class="alert alert-error"><%= error %></div>
+  <% } %>
+
+  <form method="GET" action="/admin/users" class="search-form">
+    <input type="text" name="search" placeholder="Search users..." value="<%= search %>">
+    <button type="submit" class="btn btn-primary">🔍 Search</button>
+    <% if (search) { %>
+      <a href="/admin/users" class="btn btn-outline btn-sm">Clear</a>
+    <% } %>
+  </form>
+
+  <div class="admin-section">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Gifts</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(u => { %>
+          <tr>
+            <td>
+              <strong><%= u.display_name || u.username %></strong>
+              <br><small>@<%= u.username %></small>
+              <br><small class="id-mono"><%= u.id %></small>
+            </td>
+            <td><%= u.email %></td>
+            <td><span class="badge-<%= u.role %>"><%= u.role %></span></td>
+            <td><%= u.giftCount %></td>
+            <td><%= u.is_banned ? '🚫 Banned' : '✅ Active' %></td>
+            <td class="admin-actions">
+              <% if (u.role !== 'admin') { %>
+                <form method="POST" action="/admin/users/<%= u.id %>/ban" style="display:inline;">
+                  <button type="submit" class="btn btn-sm <%= u.is_banned ? 'btn-success' : 'btn-warn' %>"
+                          onclick="return confirm('<%= u.is_banned ? 'Unban' : 'Ban' %> this user?')">
+                    <%= u.is_banned ? '✅ Unban' : '🚫 Ban' %>
+                  </button>
+                </form>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

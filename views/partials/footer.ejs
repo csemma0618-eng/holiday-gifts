@@ -1,0 +1,28 @@
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <p>🎄 Holiday Gifts — Spread joy, one gift at a time ❤️</p>
+      <p class="footer-small">Built with love for the holiday season</p>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+  <script>
+    // Toast auto-dismiss
+    document.querySelectorAll('.toast').forEach(toast => {
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    });
+
+    // Mobile menu toggle
+    document.querySelector('.mobile-menu-btn')?.addEventListener('click', () => {
+      const menu = document.querySelector('.mobile-menu');
+      menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+    });
+  </script>
+</body>
+</html>
